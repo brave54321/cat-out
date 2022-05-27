@@ -1,0 +1,63 @@
+version: 2.1
+
+workflows:
+  test-and-publish-permissions-API:
+    jobs:
+      - run-tests:
+          name: test-api
+      - hold:
+          type: approval
+          requires:
+            - test-api
+      - publish:
+          requires:
+            - test-api
+            - hold
+          filters:
+            branches:
+              only: master
+jobs:
+  run-tests:
+    machine:
+      image: ubuntu-1604:202007-01
+    steps:
+      - checkout
+      - run:
+          name: Build images
+          command: |
+            docker-compose -f docker-compose.tests.yml build
+      - run:
+          name: Build KEYCLOAK
+          command: |
+            docker-compose -f docker-compose.tests.yml --env-file .env-tests up -d keycloak
+            sleep 20
+      - run:
+          name: Build MONGO
+          command: |
+            sudo chmod 400 keyfile
+            sudo chown 999:999 keyfile
+            docker-compose -f docker-compose.tests.yml --env-file .env-tests up -d mongo
+            sleep 20
+      - run:
+          name: Run Tests
+          command: | 
+            sudo chmod -R 777 ./
+            docker-compose -f docker-compose.tests.yml run outbox-api npm test
+  publish:
+    docker:
+      - image: cimg/node:16.4.1
+        auth:
+          username: $DOCKER_USER
+          password: $DOCKER_PASS
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 19.03.13
+          docker_layer_caching: false
+      - run: 
+          command: | 
+            TAG=0.1.${CIRCLE_BUILD_NUM} 
+            docker build -f Dockerfile.production -t acavalls/ipc-outbox-api:$TAG -t acavalls/ipc-outbox-api:latest .
+            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+            docker push acavalls/ipc-outbox-api:$TAG
+            docker push acavalls/ipc-outbox-api:latest

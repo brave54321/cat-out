@@ -1,0 +1,71 @@
+version: '3.7'
+services:
+  outbox-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8085:8085
+    env_file:
+      - .env-tests
+    networks:
+      dac-network:
+        ipv4_address: 172.21.0.9
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      dac-network:
+        ipv4_address: 172.21.0.13
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    environment:
+      DB_VENDOR: ${DB_VENDOR}
+      DB_ADDR: ${DB_ADDR}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USER: ${DB_USER}
+      DB_SCHEMA: ${DB_SCHEMA}
+      DB_PASSWORD: ${DB_PASSWORD}
+      KEYCLOAK_USER: ${KEYCLOAK_USER}
+      KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
+    volumes:
+      - "./keycloak/realms:/opt/jboss/keycloak/imports"
+    command:
+      - '-b 0.0.0.0 -Dkeycloak.profile.feature.upload_scripts=enabled -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/opt/jboss/keycloak/imports/realm-export.json -Dkeycloak.migration.strategy=IGNORE_EXISTING'
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgres
+    networks:
+      dac-network:
+        ipv4_address: 172.21.0.12
+  mongo:
+    image : mongo:4.4
+    hostname: mongo
+    restart: on-failure
+    environment:
+      PUID: 1000
+      PGID: 1000
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_REPLICA_SET_NAME: rs0
+    volumes:
+      - "./keyfile:/opt/keyfile/keyfile"
+    ports:
+      - 27017:27017
+    healthcheck:
+      test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongo -u $${MONGO_INITDB_ROOT_USERNAME} -p $${MONGO_INITDB_ROOT_PASSWORD} --quiet) -eq 1
+      interval: 10s
+      start_period: 30s
+    command: "--bind_ip_all --keyFile /opt/keyfile/keyfile --replSet rs0"
+    networks:
+      dac-network:
+        ipv4_address: 172.21.0.10
+networks:
+  dac-network:
+    ipam:
+      config:
+        - subnet: 172.21.0.0/24
