@@ -47,20 +47,10 @@ services:
     hostname: mongo
     restart: on-failure
     environment:
-      PUID: 1000
-      PGID: 1000
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password
-      MONGO_REPLICA_SET_NAME: rs0
-    volumes:
-      - "./keyfile:/opt/keyfile/keyfile"
     ports:
       - 27017:27017
-    healthcheck:
-      test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongo -u $${MONGO_INITDB_ROOT_USERNAME} -p $${MONGO_INITDB_ROOT_PASSWORD} --quiet) -eq 1
-      interval: 10s
-      start_period: 30s
-    command: "--bind_ip_all --keyFile /opt/keyfile/keyfile --replSet rs0"
     networks:
       dac-network:
         ipv4_address: 172.21.0.10

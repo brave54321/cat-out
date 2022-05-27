@@ -11,7 +11,7 @@ export default callback => {
 	let authSource = process.env.MONGO_AUTH;
         let replicaSet = process.env.MONGO_REPLICASET;
 	// connect to MongoDB, then pass it to the callback fn:
-	const mongo = mongoose.connect(`mongodb://${username}:${password}@${host}/${db}??connectTimeoutMS=300000&replicaSet=${replicaSet}&authSource=${authSource}`)
+	const mongo = mongoose.connect(`mongodb://${username}:${password}@${host}/${db}??connectTimeoutMS=300000&authSource=${authSource}`)
 		.then(() => winston.info(`Connected to ${db}`))
 	callback(mongo); 
 }
