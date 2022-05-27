@@ -20,17 +20,29 @@ services:
     networks:
       dac-network:
         ipv4_address: 172.21.0.13
+POSTGRES_PASSWORD=password
+POSTGRES_USER=keycloak
+POSTGRES_DB=keycloak
+DB_VENDOR=POSTGRES
+DB_ADDR=postgres
+DB_DATABASE=keycloak
+DB_USER=keycloak
+DB_SCHEMA=public
+DB_PASSWORD=password
+KEYCLOAK_USER=admin
+KEYCLOAK_PASSWORD=password
+
   keycloak:
     image: quay.io/keycloak/keycloak:latest
     environment:
-      DB_VENDOR: ${DB_VENDOR}
-      DB_ADDR: ${DB_ADDR}
-      DB_DATABASE: ${DB_DATABASE}
-      DB_USER: ${DB_USER}
-      DB_SCHEMA: ${DB_SCHEMA}
-      DB_PASSWORD: ${DB_PASSWORD}
-      KEYCLOAK_USER: ${KEYCLOAK_USER}
-      KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
+      DB_VENDOR: POSTGRES
+      DB_ADDR: postgres
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_SCHEMA: public
+      DB_PASSWORD: password
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: password
     volumes:
       - "./keycloak/realms:/opt/jboss/keycloak/imports"
     command:
