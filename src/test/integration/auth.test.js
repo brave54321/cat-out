@@ -10,10 +10,10 @@ describe('Integration tests: AuthN/Z', () => {
     let baseUrl;
 
     let validOutboxDoc = {
-        _id: "https://test-url/TF002",
+        _id: "nc:172.21.0.1:7080:001",
         metadata: {
             es_index: "nm_gse",
-            file_locator: "https://test-url/TF002",
+            file_locator: "nc:172.21.0.1:7080:001",
             analysis: "vre"
         }
     };
