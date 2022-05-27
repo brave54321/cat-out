@@ -38,7 +38,7 @@ jobs:
           command: |
             sudo chmod 400 keyfile
             sudo chown 999:999 keyfile
-            docker-compose -f docker-compose.tests.yml up -d mongo
+            docker-compose -f docker-compose.tests.yml --env-file .env-tests up -d mongo
       - run:
           name: Wait for mongodb
           command: |
@@ -52,7 +52,7 @@ jobs:
       - run:
           name: Start KEYCLOAK
           command: |
-            docker-compose -f docker-compose.tests.yml up -d keycloak
+            docker-compose -f docker-compose.tests.yml --env-file .env-tests up -d keycloak
       - run:
           name: Wait for keycloak
           command: |
